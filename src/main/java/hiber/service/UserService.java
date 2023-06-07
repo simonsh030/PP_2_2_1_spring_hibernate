@@ -10,13 +10,13 @@ import java.util.List;
 public interface UserService {
     void add(User user);
 
-    List<User> listUsers();
+    List<User> getUsers();
 
 
     //    @Transactional
     void add(Car car);
 
-    List<Car> listCars();
+    List<Car> getCars();
 
     User findOwner(String car_name, int car_series);
 }

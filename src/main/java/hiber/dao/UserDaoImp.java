@@ -1,20 +1,24 @@
 package hiber.dao;
 
-import hiber.model.Car;
 import hiber.model.User;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
 @Repository
 public class UserDaoImp implements UserDao {
 
+   private final SessionFactory sessionFactory;
+
    @Autowired
-   private SessionFactory sessionFactory;
+   public UserDaoImp(SessionFactory sessionFactory) {
+      this.sessionFactory = sessionFactory;
+   }
 
    @Override
    public void add(User user) {
@@ -22,38 +26,23 @@ public class UserDaoImp implements UserDao {
    }
 
    @Override
-   @SuppressWarnings("unchecked")
-   public List<User> listUsers() {
-      TypedQuery<User> query = sessionFactory.getCurrentSession().createQuery("from User");
+   public List<User> getUsers() {
+      TypedQuery<User> query = sessionFactory.getCurrentSession().createQuery("from User", User.class);
       return query.getResultList();
    }
 
    @Override
-   public void add(Car car) {
-      sessionFactory.getCurrentSession().save(car);
-   }
+   public User findOwner(String carName, int carSeries) {
+      Query<User> findUserQuery = sessionFactory.getCurrentSession().createQuery(
+              "select user from User user join user.car car where car.model = :carName and car.series = :carSeries", User.class);
+      findUserQuery.setParameter("carName", carName);
+      findUserQuery.setParameter("carSeries", carSeries);
+      User foundUser = findUserQuery.uniqueResult();
 
-   @Override
-   public List listCars() {
-      Query query = sessionFactory.getCurrentSession().createQuery("from Car");
-      return query.getResultList();
-   }
-
-   @Override
-   public User findOwner(String car_name, int car_series) {
-      Query findCarQuery = sessionFactory.getCurrentSession().createQuery
-                      ("from Car where model = :car_name and series = :car_series")
-              .setParameter("car_name", car_name)
-              .setParameter("car_series", car_series);
-      List findCarList = findCarQuery.getResultList();
-      if (!findCarList.isEmpty()) {
-         Car findCar = (Car) findCarList.get(0);
-         List<User> ListUser = listUsers();
-         return listUsers().stream()
-                 .filter(user -> user.getCar().equals(findCar))
-                 .findAny()
-                 .orElse(null);
+      if (foundUser != null) {
+         return foundUser;
       }
-      return null;
+
+      throw new EntityNotFoundException("Owner not found for car: " + carName + " series: " + carSeries);
    }
 }
