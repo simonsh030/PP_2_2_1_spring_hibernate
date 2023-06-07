@@ -12,8 +12,6 @@ public interface UserService {
 
     List<User> getUsers();
 
-
-    //    @Transactional
     void add(Car car);
 
     List<Car> getCars();
