@@ -31,15 +31,5 @@ public class UserDaoImp implements UserDao {
       return query.getResultList();
    }
 
-   @Override
-   public User findOwner(String carName, int carSeries) {
-      String queryString = "select user from User user join user.car car where car.model = :carName and car.series = :carSeries";
 
-      return sessionFactory.getCurrentSession()
-              .createQuery(queryString, User.class)
-              .setParameter("carName", carName)
-              .setParameter("carSeries", carSeries)
-              .uniqueResultOptional()
-              .orElseThrow(() -> new EntityNotFoundException("Owner not found for car: " + carName + " series: " + carSeries));
-   }
 }
